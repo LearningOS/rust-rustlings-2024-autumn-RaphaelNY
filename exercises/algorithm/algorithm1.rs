@@ -2,11 +2,11 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
-
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
+use std::cmp::PartialOrd;
+use std::clone::Clone;
 
 #[derive(Debug)]
 struct Node<T> {
@@ -34,15 +34,19 @@ impl<T> Default for LinkedList<T> {
         Self::new()
     }
 }
+impl <T> LinkedList<T> {
+	pub fn new() -> LinkedList<T> {
+		LinkedList {
+			length: 0,
+			start: None,
+			end: None,
+		}
+	}
 
-impl<T> LinkedList<T> {
-    pub fn new() -> Self {
-        Self {
-            length: 0,
-            start: None,
-            end: None,
-        }
-    }
+}
+
+impl<T: PartialOrd + Clone> LinkedList<T> {
+
 
     pub fn add(&mut self, obj: T) {
         let mut node = Box::new(Node::new(obj));
@@ -69,14 +73,42 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
-        }
+	pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self {
+		let mut merged_list = LinkedList::new();
+
+		let mut current_a = list_a.start;
+		let mut current_b = list_b.start;
+
+		while current_a.is_some() || current_b.is_some() {
+			if let (Some(a_ptr), Some(b_ptr)) = (current_a, current_b) {
+				unsafe {
+					let a = a_ptr.as_ref();
+					let b = b_ptr.as_ref();
+
+					if a.val <= b.val {
+						merged_list.add(a.val.clone());
+						current_a = a.next;
+					} else {
+						merged_list.add(b.val.clone());
+						current_b = b.next;
+					}
+				}
+			} else if let Some(a_ptr) = current_a {
+				unsafe {
+					let a = a_ptr.as_ref();
+					merged_list.add(a.val.clone());
+					current_a = a.next;
+				}
+			} else if let Some(b_ptr) = current_b {
+				unsafe {
+					let b = b_ptr.as_ref();
+					merged_list.add(b.val.clone());
+					current_b = b.next;
+				}
+			}
+		}
+
+		merged_list
 	}
 }
 
